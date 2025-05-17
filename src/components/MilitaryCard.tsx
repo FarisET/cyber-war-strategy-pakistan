@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -8,16 +7,16 @@ interface MilitaryCardProps {
   variant?: "default" | "bordered";
 }
 
-const MilitaryCard = ({ 
-  children, 
+const MilitaryCard = ({
+  children,
   className,
-  variant = "default" 
+  variant = "default"
 }: MilitaryCardProps) => {
   return (
-    <div 
+    <div
       className={cn(
-        "bg-military-light p-4 relative overflow-hidden",
-        variant === "bordered" && "military-border",
+        "bg-military-light p-4 relative overflow-hidden", // Key: `relative overflow-hidden`
+        variant === "bordered" && "military-border",        // Key: `military-border`
         className
       )}
     >
@@ -31,7 +30,7 @@ const MilitaryCard = ({
         </>
       )}
       
-      {children}
+      {children} {/* Children are rendered here */}
     </div>
   );
 };

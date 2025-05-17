@@ -3,7 +3,7 @@ import { ReactNode, useEffect } from "react";
 import { Shield, Menu, User, LogOut } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { Link } from "react-router-dom";
-import { preloadSounds, playSound } from "../utils/soundUtils";
+// import { preloadSounds, playSound } from "../utils/soundUtils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -25,7 +25,7 @@ const Layout = ({ children, hideAuth = false }: LayoutProps) => {
 
   // Preload sounds on component mount
   useEffect(() => {
-    preloadSounds();
+    // preloadSounds();
   }, []);
 
   const handleLogout = async () => {
@@ -33,11 +33,13 @@ const Layout = ({ children, hideAuth = false }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-military bg-camo-pattern">
+    <div className="min-h-screen flex flex-col bg-military">
       {/* Header */}
       <header className="border-b border-military-light">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2" onClick={() => playSound("buttonClick", 0.3)}>
+          <Link to="/" className="flex items-center gap-2" 
+          // onClick={() => playSound("buttonClick", 0.3)}
+          >
             <Shield className="h-6 w-6 text-military-red" />
             <span className="text-xl font-bold tracking-wider">PAK-INDIA WAR STRATEGY</span>
           </Link>
@@ -46,7 +48,9 @@ const Layout = ({ children, hideAuth = false }: LayoutProps) => {
             {!hideAuth && isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative p-1" onClick={() => playSound("buttonClick", 0.3)}>
+                  <Button variant="ghost" className="relative p-1" 
+                  // onClick={() => playSound("buttonClick", 0.3)}
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatar} alt={user?.username} />
                       <AvatarFallback>
@@ -77,7 +81,7 @@ const Layout = ({ children, hideAuth = false }: LayoutProps) => {
                     variant="outline" 
                     size="sm"
                     className="border-military-red text-military-red hover:bg-military-red hover:text-white"
-                    onClick={() => playSound("buttonClick", 0.3)}
+                    // onClick={() => playSound("buttonClick", 0.3)}
                   >
                     Login
                   </Button>
@@ -86,7 +90,7 @@ const Layout = ({ children, hideAuth = false }: LayoutProps) => {
                   <Button 
                     size="sm"
                     className="bg-military-red text-white hover:bg-military-red/90"
-                    onClick={() => playSound("buttonClick", 0.3)}
+                    // onClick={() => playSound("buttonClick", 0.3)}
                   >
                     Register
                   </Button>

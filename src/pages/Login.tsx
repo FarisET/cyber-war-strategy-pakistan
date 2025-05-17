@@ -35,7 +35,7 @@ const Login = () => {
   return (
     <Layout hideAuth>
       <div className="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
-        <MilitaryCard variant="bordered" className="w-full max-w-md">
+        {/* <MilitaryCard variant="bordered" className="w-full max-w-md"> */}
           <div className="flex flex-col items-center mb-6">
             <Shield className="h-12 w-12 text-military-red mb-2" />
             <h1 className="text-2xl font-bold">Cyber Command Access</h1>
@@ -106,7 +106,7 @@ const Login = () => {
               Request Access
             </Link>
           </div>
-        </MilitaryCard>
+        {/* </MilitaryCard> */}
         
         <p className="mt-8 text-sm text-center text-muted-foreground">
           <span className="block mb-1">DEMO: Use demo@example.com / password</span>

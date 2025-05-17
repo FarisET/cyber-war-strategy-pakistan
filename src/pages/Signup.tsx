@@ -12,6 +12,7 @@ import TerminalText from "@/components/TerminalText";
 
 const Signup = () => {
   const [username, setUsername] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,7 @@ const Signup = () => {
   return (
     <Layout hideAuth>
       <div className="flex flex-col items-center justify-center min-h-[60vh] py-12 px-4">
-        <MilitaryCard variant="bordered" className="w-full max-w-md">
+        {/* <MilitaryCard variant="bordered" className="w-full max-w-md"> */}
           <div className="flex flex-col items-center mb-6">
             <Shield className="h-12 w-12 text-military-red mb-2" />
             <h1 className="text-2xl font-bold">New Operative Registration</h1>
@@ -56,7 +57,7 @@ const Signup = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your callsign"
+                placeholder="Enter your alias"
                 required
                 className="bg-military-dark border-military-light focus:border-military-red"
               />
@@ -113,7 +114,7 @@ const Signup = () => {
               Access Terminal
             </Link>
           </div>
-        </MilitaryCard>
+        {/* </MilitaryCard> */}
       </div>
     </Layout>
   );

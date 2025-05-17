@@ -1,5 +1,9 @@
 
 import { GameLevel, GameScenario } from "../types";
+import rafaleImage from '../utils/img/rafale.jpg';
+import s400Image from '../utils/img/s400.webp';
+import airBaseImage from '../utils/img/air-base.jpg'
+
 
 export const GAME_LEVELS: GameLevel[] = [
   {
@@ -9,7 +13,7 @@ export const GAME_LEVELS: GameLevel[] = [
     difficulty: "easy",
     unlockLevel: 1,
     completed: false,
-    image: "https://images.unsplash.com/photo-1543642178-7e34d5cccde5?q=80&w=1000"
+    image: rafaleImage
   },
   {
     id: "level-2",
@@ -18,7 +22,7 @@ export const GAME_LEVELS: GameLevel[] = [
     difficulty: "medium",
     unlockLevel: 2,
     completed: false,
-    image: "https://images.unsplash.com/photo-1595264969333-9a885e2e8513?q=80&w=1000"
+    image: s400Image
   },
   {
     id: "level-3",
@@ -27,7 +31,7 @@ export const GAME_LEVELS: GameLevel[] = [
     difficulty: "hard",
     unlockLevel: 3,
     completed: false,
-    image: "https://images.unsplash.com/photo-1507712522505-a54be26995b2?q=80&w=1000"
+    image: airBaseImage
   }
 ];
 
