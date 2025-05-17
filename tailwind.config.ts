@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -24,6 +25,14 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				military: {
+					DEFAULT: '#1A1F2C',
+					light: '#2A3040',
+					dark: '#10141C',
+					red: '#ea384c',
+					accent: '#4a7c59',
+					yellow: '#f0c04c',
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -84,11 +93,30 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'radar-sweep': {
+					'0%': { 
+						transform: 'rotate(0deg)',
+						opacity: '0.5'
+					},
+					'100%': { 
+						transform: 'rotate(360deg)',
+						opacity: '0.5'
+					}
+				},
+				'blink': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.3' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'radar-sweep': 'radar-sweep 4s linear infinite',
+				'blink': 'blink 2s ease-in-out infinite'
+			},
+			backgroundImage: {
+				'camo-pattern': "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxMDE0MUMiIG9wYWNpdHk9IjAuMiI+PC9yZWN0PjxyZWN0IHg9IjI1IiB5PSIwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxQTFGMkMiIG9wYWNpdHk9IjAuMSI+PC9yZWN0PjxyZWN0IHg9IjUwIiB5PSIwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMyQTMwNDAiIG9wYWNpdHk9IjAuMiI+PC9yZWN0PjxyZWN0IHg9Ijc1IiB5PSIwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxQTFGMkMiIG9wYWNpdHk9IjAuMSI+PC9yZWN0PjxyZWN0IHg9IjAiIHk9IjI1IiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxQTFGMkMiIG9wYWNpdHk9IjAuMSI+PC9yZWN0PjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjI1IiBoZWlnaHQ9IjI1IiBmaWxsPSIjMkEzMDQwIiBvcGFjaXR5PSIwLjIiPjwvcmVjdD48cmVjdCB4PSI1MCIgeT0iMjUiIHdpZHRoPSIyNSIgaGVpZ2h0PSIyNSIgZmlsbD0iIzFBMUYyQyIgb3BhY2l0eT0iMC4xIj48L3JlY3Q+PHJlY3QgeD0iNzUiIHk9IjI1IiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxMDE0MUMiIG9wYWNpdHk9IjAuMiI+PC9yZWN0PjxyZWN0IHg9IjAiIHk9IjUwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMyQTMwNDAiIG9wYWNpdHk9IjAuMiI+PC9yZWN0PjxyZWN0IHg9IjI1IiB5PSI1MCIgd2lkdGg9IjI1IiBoZWlnaHQ9IjI1IiBmaWxsPSIjMUExRjJDIiBvcGFjaXR5PSIwLjEiPjwvcmVjdD48cmVjdCB4PSI1MCIgeT0iNTAiIHdpZHRoPSIyNSIgaGVpZ2h0PSIyNSIgZmlsbD0iIzEwMTQxQyIgb3BhY2l0eT0iMC4yIj48L3JlY3Q+PHJlY3QgeD0iNzUiIHk9IjUwIiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMyQTMwNDAiIG9wYWNpdHk9IjAuMSI+PC9yZWN0PjxyZWN0IHg9IjAiIHk9Ijc1IiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxQTFGMkMiIG9wYWNpdHk9IjAuMSI+PC9yZWN0PjxyZWN0IHg9IjI1IiB5PSI3NSIgd2lkdGg9IjI1IiBoZWlnaHQ9IjI1IiBmaWxsPSIjMTAxNDFDIiBvcGFjaXR5PSIwLjIiPjwvcmVjdD48cmVjdCB4PSI1MCIgeT0iNzUiIHdpZHRoPSIyNSIgaGVpZ2h0PSIyNSIgZmlsbD0iIzJBMzA0MCIgb3BhY2l0eT0iMC4xIj48L3JlY3Q+PHJlY3QgeD0iNzUiIHk9Ijc1IiB3aWR0aD0iMjUiIGhlaWdodD0iMjUiIGZpbGw9IiMxQTFGMkMiIG9wYWNpdHk9IjAuMiI+PC9yZWN0Pjwvc3ZnPg==')"
 			}
 		}
 	},
