@@ -7,9 +7,10 @@ import { GAME_LEVELS } from "@/data/gameLevels";
 import TerminalText from "@/components/TerminalText";
 import Radar from "@/components/Radar";
 import LevelCard from "@/components/LevelCard";
+import Scoreboard from "@/components/Scoreboard";
 import { Button } from "@/components/ui/button";
 import { playSound } from "@/utils/soundUtils";
-import { Target } from "lucide-react";
+import { Target, Trophy } from "lucide-react";
 
 const Index = () => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -57,20 +58,30 @@ const Index = () => {
               />
             </div>
             
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <Target className="mr-2 h-5 w-5 text-military-red" />
-                Available Operations
-              </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+              <div className="lg:col-span-2">
+                <h2 className="text-xl font-bold mb-4 flex items-center">
+                  <Target className="mr-2 h-5 w-5 text-military-red" />
+                  Available Operations
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {GAME_LEVELS.map(level => (
+                    <LevelCard
+                      key={level.id}
+                      level={level}
+                      userLevel={user?.level || 1}
+                    />
+                  ))}
+                </div>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {GAME_LEVELS.map(level => (
-                  <LevelCard
-                    key={level.id}
-                    level={level}
-                    userLevel={user?.level || 1}
-                  />
-                ))}
+              <div>
+                <h2 className="text-xl font-bold mb-4 flex items-center">
+                  <Trophy className="mr-2 h-5 w-5 text-military-red" />
+                  Scoreboard
+                </h2>
+                <Scoreboard />
               </div>
             </div>
           </>

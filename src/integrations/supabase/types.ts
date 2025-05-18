@@ -9,10 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          attempts: Json | null
+          avatar: string | null
+          completed_levels: string[] | null
+          id: string
+          last_login: string | null
+          level: number | null
+          rank: string | null
+          score: number | null
+          time_taken: Json | null
+          username: string | null
+        }
+        Insert: {
+          attempts?: Json | null
+          avatar?: string | null
+          completed_levels?: string[] | null
+          id: string
+          last_login?: string | null
+          level?: number | null
+          rank?: string | null
+          score?: number | null
+          time_taken?: Json | null
+          username?: string | null
+        }
+        Update: {
+          attempts?: Json | null
+          avatar?: string | null
+          completed_levels?: string[] | null
+          id?: string
+          last_login?: string | null
+          level?: number | null
+          rank?: string | null
+          score?: number | null
+          time_taken?: Json | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          attempts: Json | null
+          avatar: string | null
+          completed_levels: string[] | null
+          id: string | null
+          last_login: string | null
+          level: number | null
+          levels_completed: number | null
+          rank: string | null
+          score: number | null
+          time_taken: Json | null
+          username: string | null
+        }
+        Insert: {
+          attempts?: Json | null
+          avatar?: string | null
+          completed_levels?: string[] | null
+          id?: string | null
+          last_login?: string | null
+          level?: number | null
+          levels_completed?: never
+          rank?: string | null
+          score?: number | null
+          time_taken?: Json | null
+          username?: string | null
+        }
+        Update: {
+          attempts?: Json | null
+          avatar?: string | null
+          completed_levels?: string[] | null
+          id?: string | null
+          last_login?: string | null
+          level?: number | null
+          levels_completed?: never
+          rank?: string | null
+          score?: number | null
+          time_taken?: Json | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
