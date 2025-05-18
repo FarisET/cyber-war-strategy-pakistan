@@ -145,13 +145,21 @@ const LevelDetail = () => {
           .eq('id', user.id)
           .single();
 
+        // Fix: Properly handle the JSON data
         const currentAttempts = data?.attempts || {};
-        const updatedAttempts = {
-          ...currentAttempts,
-          [levelId]: newAttempts,
-          total: Object.values({...currentAttempts, [levelId]: newAttempts})
-            .reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0)
-        };
+        
+        // Create a new object with the updated attempts
+        const updatedAttempts: Record<string, number> = { ...currentAttempts as Record<string, number> };
+        updatedAttempts[levelId] = newAttempts;
+        
+        // Calculate total attempts
+        let totalAttempts = 0;
+        Object.values(updatedAttempts).forEach(value => {
+          if (typeof value === 'number') {
+            totalAttempts += value;
+          }
+        });
+        updatedAttempts.total = totalAttempts;
 
         // Update profile with new attempts data
         await supabase
@@ -188,15 +196,21 @@ const LevelDetail = () => {
         .eq('id', user.id)
         .single();
 
+      // Fix: Properly handle the JSON data
       const currentTimeTaken = data?.time_taken || {};
       
-      // Update time taken for this specific level and total
-      const updatedTimeTaken = {
-        ...currentTimeTaken,
-        [levelId]: newTotalTime,
-        total: Object.values({...currentTimeTaken, [levelId]: newTotalTime})
-          .reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0)
-      };
+      // Create a new object with the updated time taken
+      const updatedTimeTaken: Record<string, number> = { ...currentTimeTaken as Record<string, number> };
+      updatedTimeTaken[levelId] = newTotalTime;
+      
+      // Calculate total time taken
+      let totalTime = 0;
+      Object.values(updatedTimeTaken).forEach(value => {
+        if (typeof value === 'number') {
+          totalTime += value;
+        }
+      });
+      updatedTimeTaken.total = totalTime;
 
       // Update profile with new time data
       await supabase
