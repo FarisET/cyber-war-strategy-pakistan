@@ -28,6 +28,7 @@ const Scoreboard = () => {
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       try {
+        // Use the view we created specifically for the leaderboard
         const { data, error } = await supabase
           .from("leaderboard")
           .select("*")
@@ -38,6 +39,7 @@ const Scoreboard = () => {
           return;
         }
 
+        console.log("Leaderboard data:", data);
         setLeaderboardData(data as LeaderboardUser[]);
       } catch (error) {
         console.error("Error:", error);
@@ -120,7 +122,9 @@ const Scoreboard = () => {
                     {player.levels_completed || 0}
                   </TableCell>
                   <TableCell className="text-center">
-                    {(player.attempts && player.attempts.total) || 0}
+                    {player.attempts && player.attempts.total
+                      ? player.attempts.total
+                      : 0}
                   </TableCell>
                   <TableCell className="text-center">
                     {player.time_taken && player.time_taken.total
