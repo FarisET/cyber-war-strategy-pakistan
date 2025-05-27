@@ -1,13 +1,14 @@
 
 import { useState } from "react";
 import { GameLevel } from "@/types";
-import { Lock, Award, ChevronRight } from "lucide-react";
+import { Lock, Award, ChevronRight, Clock, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MilitaryCard from "./MilitaryCard";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { playSound } from "@/utils/soundUtils";
+import { useProgress } from "@/hooks/useProgress";
 
 interface LevelCardProps {
   level: GameLevel;
@@ -17,11 +18,14 @@ interface LevelCardProps {
 
 const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const isLocked = level.unlockLevel > userLevel;
+  const { getLevelProgress, isLevelUnlocked } = useProgress();
+  
+  const progress = getLevelProgress(level.id);
+  const isUnlocked = isLevelUnlocked(level.id);
   
   const handleMouseEnter = () => {
     setIsHovered(true);
-    if (!isLocked) {
+    if (isUnlocked) {
       playSound("buttonClick", 0.2);
     }
   };
@@ -31,7 +35,7 @@ const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
   };
 
   const handleCardClick = () => {
-    if (isLocked) {
+    if (!isUnlocked) {
       playSound("error", 0.3);
     } else {
       playSound("buttonClick", 0.4);
@@ -42,23 +46,29 @@ const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
   if (level.difficulty === "medium") difficultyColor = "bg-yellow-500";
   if (level.difficulty === "hard") difficultyColor = "bg-orange-500";
   if (level.difficulty === "expert") difficultyColor = "bg-red-500";
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
   
   return (
     <div 
       className={cn(
         "group transition-all duration-300 transform",
-        isHovered && !isLocked && "scale-[1.02]",
-        isLocked && "opacity-75",
+        isHovered && isUnlocked && "scale-[1.02]",
+        !isUnlocked && "opacity-75",
         className
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <Link 
-        to={isLocked ? "#" : `/level/${level.id}`}
+        to={!isUnlocked ? "#" : `/level/${level.id}`}
         className={cn(
           "block",
-          isLocked && "cursor-not-allowed"
+          !isUnlocked && "cursor-not-allowed"
         )}
         onClick={handleCardClick}
       >
@@ -73,7 +83,7 @@ const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-military to-transparent" />
             
             {/* Lock overlay if level is locked */}
-            {isLocked && (
+            {!isUnlocked && (
               <div className="absolute inset-0 bg-military/70 flex flex-col items-center justify-center">
                 <Lock className="w-10 h-10 text-military-red mb-2" />
                 <p className="text-sm font-medium">Unlocks at Level {level.unlockLevel}</p>
@@ -81,7 +91,7 @@ const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
             )}
             
             {/* Completed badge */}
-            {level.completed && (
+            {progress.completed && (
               <div className="absolute top-2 right-2">
                 <Badge className="bg-military-accent text-white">
                   <Award className="w-3 h-3 mr-1" />
@@ -100,19 +110,35 @@ const LevelCard = ({ level, userLevel, className }: LevelCardProps) => {
           
           <div className="p-2 flex-1 flex flex-col">
             <h3 className="text-lg font-bold mb-1">{level.name}</h3>
-            <p className="text-sm text-muted-foreground mb-4 flex-1">{level.description}</p>
+            <p className="text-sm text-muted-foreground mb-3 flex-1">{level.description}</p>
+            
+            {/* Progress stats */}
+            {isUnlocked && (progress.attempts > 0 || progress.timeSpent > 0) && (
+              <div className="flex justify-between text-xs text-muted-foreground mb-3 p-2 bg-military-dark rounded">
+                <div className="flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  <span>Attempts: {progress.attempts}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Best: {formatTime(progress.timeSpent)}</span>
+                </div>
+              </div>
+            )}
             
             <Button 
               className={cn(
                 "w-full mt-auto",
-                isLocked 
+                !isUnlocked 
                   ? "bg-military-light border border-military-red/50 text-military-red/50" 
+                  : progress.completed
+                  ? "bg-military-accent hover:bg-military-accent/90"
                   : "bg-military-red hover:bg-military-red/90"
               )}
-              disabled={isLocked}
+              disabled={!isUnlocked}
             >
-              {isLocked ? "Locked" : "Start Mission"}
-              {!isLocked && <ChevronRight className="ml-2 h-4 w-4" />}
+              {!isUnlocked ? "Locked" : progress.completed ? "Replay Mission" : "Start Mission"}
+              {isUnlocked && <ChevronRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>
         </MilitaryCard>

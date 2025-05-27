@@ -1,450 +1,329 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import MilitaryCard from "@/components/MilitaryCard";
-import { GAME_LEVELS } from "@/data/gameLevels";
-import { LEVEL_ONE_SCENARIO } from "@/data/gameLevels";
 import { Button } from "@/components/ui/button";
-import { playSound } from "@/utils/soundUtils";
-import { ArrowLeft, Flag, Clock, AlertCircle } from "lucide-react";
-import { GameQuestion } from "@/types";
-import { toast } from "sonner";
-import TerminalText from "@/components/TerminalText";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock, Target, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getScenarioByLevelId } from "@/data/gameLevels";
+import { GameQuestion, GameQuestionOption } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useProgress } from "@/hooks/useProgress";
+import { toast } from "sonner";
+import { playSound } from "@/utils/soundUtils";
 
 const LevelDetail = () => {
   const { levelId } = useParams<{ levelId: string }>();
   const navigate = useNavigate();
-  const [currentQuestion, setCurrentQuestion] = useState<GameQuestion | null>(null);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(30); // 30 seconds per question
-  const [totalTimeTaken, setTotalTimeTaken] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
+  const { updateProgress, isLevelUnlocked } = useProgress();
   
-  const level = GAME_LEVELS.find(level => level.id === levelId);
-  const scenario = LEVEL_ONE_SCENARIO; // We're using level one scenario for now
-  
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [answers, setAnswers] = useState<{ questionId: string; selectedOptionId: string; correct: boolean }[]>([]);
+
+  const scenario = levelId ? getScenarioByLevelId(levelId) : null;
+
   useEffect(() => {
-    // Reset state when level changes
-    setQuestionIndex(0);
-    setSelectedOption(null);
-    setShowExplanation(false);
-    setTimeRemaining(30); // Reset to 30 seconds
-    setTotalTimeTaken(0);
-    
-    // Set first question
-    if (scenario && scenario.questions.length > 0) {
-      setCurrentQuestion(scenario.questions[0]);
+    if (!user) {
+      navigate("/login");
+      return;
     }
     
-    // Play sound effect
-    playSound("startup", 0.3);
-
-    // Fetch attempts data for this level
-    fetchAttemptData();
-    
-    return () => {
-      // Cleanup timer on unmount
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [levelId, scenario]);
-
-  // Fetch attempts data for this level from user profile
-  const fetchAttemptData = async () => {
-    if (!user || !levelId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('attempts')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching attempt data:", error);
-        return;
-      }
-
-      if (data && data.attempts) {
-        const levelAttempts = data.attempts[levelId] || 0;
-        setAttempts(levelAttempts);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  // Start timer when question is displayed
-  useEffect(() => {
-    if (!currentQuestion) return;
-
-    // Start the timer
-    startTimer();
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [currentQuestion, questionIndex]);
-
-  const startTimer = () => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    // Reset time for this question
-    setTimeRemaining(30);
-
-    // Start countdown
-    timerRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          // Time's up
-          clearInterval(timerRef.current!);
-          handleTimeUp();
-          return 0;
-        }
-        return prev - 1;
+    if (levelId && !isLevelUnlocked(levelId)) {
+      toast.error("Level locked", {
+        description: "Complete previous levels to unlock this mission."
       });
-    }, 1000);
-  };
-
-  const handleTimeUp = () => {
-    // If no option selected yet, treat as incorrect answer
-    if (!selectedOption) {
-      playSound("error", 0.4);
-      toast.error("Time's up!", {
-        description: "The mission has failed due to delayed response.",
-      });
-      handleMissionFailed();
-    }
-  };
-
-  const handleMissionFailed = async () => {
-    // Update attempts for this level
-    if (user && levelId) {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-
-      try {
-        // Get current attempts data
-        const { data } = await supabase
-          .from('profiles')
-          .select('attempts')
-          .eq('id', user.id)
-          .single();
-
-        // Fix: Properly handle the JSON data
-        const currentAttempts = data?.attempts || {};
-        
-        // Create a new object with the updated attempts
-        const updatedAttempts: Record<string, number> = { ...currentAttempts as Record<string, number> };
-        updatedAttempts[levelId] = newAttempts;
-        
-        // Calculate total attempts
-        let totalAttempts = 0;
-        Object.values(updatedAttempts).forEach(value => {
-          if (typeof value === 'number') {
-            totalAttempts += value;
-          }
-        });
-        updatedAttempts.total = totalAttempts;
-
-        // Update profile with new attempts data
-        await supabase
-          .from('profiles')
-          .update({ attempts: updatedAttempts })
-          .eq('id', user.id);
-
-      } catch (error) {
-        console.error("Error updating attempts:", error);
-      }
-    }
-
-    // Redirect back to home after a short delay
-    setTimeout(() => {
       navigate("/");
-    }, 2000);
+      return;
+    }
+
+    if (scenario) {
+      setTimeLeft(scenario.timeLimit);
+    }
+  }, [levelId, scenario, user, navigate, isLevelUnlocked]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (gameStarted && timeLeft > 0 && !gameCompleted) {
+      timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && gameStarted && !gameCompleted) {
+      handleGameEnd();
+    }
+    return () => clearTimeout(timer);
+  }, [timeLeft, gameStarted, gameCompleted]);
+
+  const handleStartGame = () => {
+    setGameStarted(true);
+    setStartTime(Date.now());
+    playSound("startup", 0.5);
   };
 
-  const updateTimeTaken = async () => {
-    if (!user || !levelId) return;
-
-    try {
-      // Calculate time taken for this question (30 - remaining time)
-      const questionTimeTaken = 30 - timeRemaining;
-      
-      // Add to total time taken
-      const newTotalTime = totalTimeTaken + questionTimeTaken;
-      setTotalTimeTaken(newTotalTime);
-      
-      // Get current time_taken data
-      const { data } = await supabase
-        .from('profiles')
-        .select('time_taken')
-        .eq('id', user.id)
-        .single();
-
-      // Fix: Properly handle the JSON data
-      const currentTimeTaken = data?.time_taken || {};
-      
-      // Create a new object with the updated time taken
-      const updatedTimeTaken: Record<string, number> = { ...currentTimeTaken as Record<string, number> };
-      updatedTimeTaken[levelId] = newTotalTime;
-      
-      // Calculate total time taken
-      let totalTime = 0;
-      Object.values(updatedTimeTaken).forEach(value => {
-        if (typeof value === 'number') {
-          totalTime += value;
-        }
-      });
-      updatedTimeTaken.total = totalTime;
-
-      // Update profile with new time data
-      await supabase
-        .from('profiles')
-        .update({ time_taken: updatedTimeTaken })
-        .eq('id', user.id);
-
-    } catch (error) {
-      console.error("Error updating time taken:", error);
+  const handleOptionSelect = (optionId: string) => {
+    if (!isAnswered) {
+      setSelectedOption(optionId);
     }
   };
-  
-  if (!level || !scenario) {
+
+  const handleSubmitAnswer = () => {
+    if (!selectedOption || !scenario) return;
+
+    const currentQuestion = scenario.questions[currentQuestionIndex];
+    const isCorrect = selectedOption === currentQuestion.correctOptionId;
+    
+    setIsAnswered(true);
+    
+    if (isCorrect) {
+      setScore(score + 1);
+      playSound("success", 0.5);
+    } else {
+      playSound("error", 0.5);
+    }
+
+    const newAnswer = {
+      questionId: currentQuestion.id,
+      selectedOptionId: selectedOption,
+      correct: isCorrect
+    };
+    
+    setAnswers([...answers, newAnswer]);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < scenario!.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOption("");
+      setIsAnswered(false);
+    } else {
+      handleGameEnd();
+    }
+  };
+
+  const handleGameEnd = async () => {
+    setGameCompleted(true);
+    playSound("success", 0.7);
+    
+    const endTime = Date.now();
+    const totalTime = Math.floor((endTime - startTime) / 1000);
+    const completed = score >= Math.ceil(scenario!.questions.length * 0.6); // 60% to pass
+    
+    if (levelId) {
+      await updateProgress(levelId, totalTime, completed);
+    }
+    
+    if (completed) {
+      toast.success("Mission Complete!", {
+        description: `Excellent work, Commander! Score: ${score}/${scenario!.questions.length}`
+      });
+    } else {
+      toast.error("Mission Failed", {
+        description: `Score: ${score}/${scenario!.questions.length}. Try again to improve!`
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  if (!scenario) {
     return (
       <Layout>
-        <div className="text-center py-12">
+        <div className="text-center py-20">
           <h1 className="text-2xl font-bold mb-4">Mission Not Found</h1>
-          <p className="mb-6">The requested operation could not be located.</p>
-          <Button 
-            onClick={() => navigate("/")}
-            className="bg-military-red hover:bg-military-red/90"
-          >
+          <Button onClick={() => navigate("/")} className="bg-military-red">
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Return to Command Center
           </Button>
         </div>
       </Layout>
     );
   }
-  
-  const handleOptionSelect = async (optionId: string) => {
-    // Stop the timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    playSound("buttonClick", 0.3);
-    setSelectedOption(optionId);
-    
-    // Check if correct
-    const isAnswerCorrect = optionId === currentQuestion?.correctOptionId;
-    setIsCorrect(isAnswerCorrect);
-    
-    // Update time taken regardless of correct/incorrect
-    await updateTimeTaken();
-    
-    if (!isAnswerCorrect) {
-      // Incorrect answer - mission failed
-      playSound("error", 0.4);
-      toast.error("Mission Failed!", {
-        description: "Your tactical decision has compromised the operation.",
-      });
-      
-      handleMissionFailed();
-    } else {
-      // Correct answer - show explanation
-      setShowExplanation(true);
-      playSound("success", 0.5);
-      toast.success("Correct decision!", {
-        description: "Your tactical choice was optimal.",
-      });
-    }
-  };
-  
-  const handleNextQuestion = () => {
-    playSound("buttonClick", 0.3);
-    
-    // Move to next question if available
-    if (questionIndex < scenario.questions.length - 1) {
-      const nextIndex = questionIndex + 1;
-      setQuestionIndex(nextIndex);
-      setCurrentQuestion(scenario.questions[nextIndex]);
-      setSelectedOption(null);
-      setShowExplanation(false);
-      startTimer(); // Start timer for next question
-    } else {
-      // Mission complete - update user profile
-      completeMission();
-    }
-  };
 
-  const completeMission = async () => {
-    playSound("success", 0.5);
-    toast.success("Mission Complete!", {
-      description: "You have successfully completed this operation.",
-    });
-    
-    if (user && levelId) {
-      try {
-        // Get current completed levels
-        const { data } = await supabase
-          .from('profiles')
-          .select('completed_levels, score')
-          .eq('id', user.id)
-          .single();
-        
-        if (data) {
-          const { completed_levels, score } = data;
-          
-          // Add this level if not already completed
-          let updatedLevels = [...(completed_levels || [])];
-          if (!updatedLevels.includes(levelId)) {
-            updatedLevels.push(levelId);
-          }
-          
-          // Add points for completing level
-          const newScore = (score || 0) + 100;
-          
-          // Update profile
-          await supabase
-            .from('profiles')
-            .update({ 
-              completed_levels: updatedLevels,
-              score: newScore
-            })
-            .eq('id', user.id);
-        }
-      } catch (error) {
-        console.error("Error updating profile:", error);
-      }
-    }
-    
-    // Navigate back to home after delay
-    setTimeout(() => {
-      navigate("/");
-    }, 3000);
-  };
-  
+  const currentQuestion = scenario.questions[currentQuestionIndex];
+  const progressPercentage = ((currentQuestionIndex + (isAnswered ? 1 : 0)) / scenario.questions.length) * 100;
+
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-6 flex items-center">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
           <Button 
-            variant="ghost" 
-            size="icon"
-            className="mr-2"
-            onClick={() => {
-              playSound("buttonClick", 0.3);
-              navigate("/");
-            }}
+            variant="outline" 
+            onClick={() => navigate("/")}
+            className="border-military-red text-military-red hover:bg-military-red hover:text-white"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Return to Command Center
           </Button>
-          <h1 className="text-2xl font-bold">{level.name}</h1>
+          
+          {gameStarted && !gameCompleted && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-military-red" />
+                <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-military-red" />
+                <span>Score: {score}/{scenario.questions.length}</span>
+              </div>
+            </div>
+          )}
         </div>
-        
-        <MilitaryCard variant="bordered" className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Flag className="h-5 w-5 text-military-red" />
-            <h2 className="text-xl font-bold">{scenario.title}</h2>
-          </div>
-          
-          <div className="mb-6">
-            <p className="text-muted-foreground">{scenario.description}</p>
-          </div>
-          
-          <div className="flex items-center justify-between text-sm mb-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>Mission Time: {Math.floor(scenario.timeLimit / 60)} minutes</span>
-            </div>
-            
-            {attempts > 0 && (
-              <div className="text-military-red flex items-center gap-1">
-                <AlertCircle className="h-4 w-4" />
-                <span>Previous Attempts: {attempts}</span>
-              </div>
-            )}
-          </div>
-        </MilitaryCard>
-        
-        {currentQuestion && (
-          <MilitaryCard 
-            variant="timer" 
-            className="mb-6"
-            timeRemaining={timeRemaining}
-            totalTime={30}
-          >
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold">Scenario {questionIndex + 1} of {scenario.questions.length}</h3>
-                <div className="flex items-center gap-2 text-xs bg-military-dark px-2 py-1 rounded">
-                  <Clock className="h-3 w-3" />
-                  <span>{timeRemaining}s remaining</span>
-                </div>
-              </div>
-              
-              <p className="text-lg mb-4">{currentQuestion.text}</p>
-              
-              <div className="space-y-3">
-                {currentQuestion.options.map(option => (
-                  <button
-                    key={option.id}
-                    className={`w-full p-3 border text-left transition-all ${
-                      selectedOption === option.id
-                        ? selectedOption === currentQuestion.correctOptionId
-                          ? "bg-military-accent/20 border-military-accent"
-                          : "bg-military-red/20 border-military-red"
-                        : "bg-military-dark border-military-light hover:border-military-light/80"
-                    } ${showExplanation || selectedOption ? "cursor-default" : "cursor-pointer"}`}
-                    onClick={() => !selectedOption && handleOptionSelect(option.id)}
-                    disabled={!!selectedOption}
-                  >
-                    <div className="font-medium">{option.text}</div>
-                    {selectedOption === option.id && option.consequence && (
-                      <div className="text-sm mt-1 text-muted-foreground">
-                        Consequence: {option.consequence}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {showExplanation && (
-              <div className={`p-4 mb-4 ${isCorrect ? "bg-military-accent/10" : "bg-military-red/10"}`}>
-                <h4 className="font-bold mb-2">Analysis:</h4>
-                <TerminalText
-                  text={currentQuestion.explanation}
-                  typingSpeed={15}
-                />
-              </div>
-            )}
-            
-            {showExplanation && (
+
+        <Card className="mb-6 bg-military border-military-light">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              {scenario.title}
+              <Badge variant="outline" className="ml-auto">
+                Level {levelId?.split('-')[1]}
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-base">
+              {scenario.description}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {!gameStarted ? (
+          <Card className="bg-military border-military-light">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-xl font-bold mb-4">Mission Briefing</h3>
+              <p className="text-muted-foreground mb-6">
+                You have {formatTime(scenario.timeLimit)} to complete {scenario.questions.length} critical decisions.
+                Answer at least 60% correctly to complete the mission successfully.
+              </p>
               <Button 
-                className="w-full bg-military-red hover:bg-military-red/90"
-                onClick={handleNextQuestion}
+                onClick={handleStartGame}
+                className="bg-military-red hover:bg-military-red/90"
+                size="lg"
               >
-                {questionIndex < scenario.questions.length - 1
-                  ? "Next Scenario"
-                  : "Complete Mission"}
+                Begin Mission
               </Button>
-            )}
-          </MilitaryCard>
+            </CardContent>
+          </Card>
+        ) : gameCompleted ? (
+          <Card className="bg-military border-military-light">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4">
+                {score >= Math.ceil(scenario.questions.length * 0.6) ? (
+                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                ) : (
+                  <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                )}
+              </div>
+              <h3 className="text-2xl font-bold mb-2">
+                {score >= Math.ceil(scenario.questions.length * 0.6) ? "Mission Complete!" : "Mission Failed"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Final Score: {score}/{scenario.questions.length} ({Math.round((score / scenario.questions.length) * 100)}%)
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="bg-military-red hover:bg-military-red/90"
+                >
+                  Retry Mission
+                </Button>
+                <Button 
+                  onClick={() => navigate("/scoreboard")}
+                  variant="outline"
+                  className="border-military-red text-military-red hover:bg-military-red hover:text-white"
+                >
+                  View Scoreboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="mb-6">
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                <span>Question {currentQuestionIndex + 1} of {scenario.questions.length}</span>
+                <span>{Math.round(progressPercentage)}% Complete</span>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
+
+            <Card className="bg-military border-military-light">
+              <CardHeader>
+                <CardTitle className="text-lg">{currentQuestion.text}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option: GameQuestionOption) => (
+                    <div
+                      key={option.id}
+                      className={cn(
+                        "p-4 rounded-lg border cursor-pointer transition-all",
+                        selectedOption === option.id
+                          ? "border-military-red bg-military-red/10"
+                          : "border-military-light hover:border-military-red/50",
+                        isAnswered && "cursor-not-allowed"
+                      )}
+                      onClick={() => handleOptionSelect(option.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-4 h-4 rounded-full border-2 mt-0.5",
+                          selectedOption === option.id
+                            ? "border-military-red bg-military-red"
+                            : "border-military-light"
+                        )} />
+                        <div className="flex-1">
+                          <p className="font-medium">{option.text}</p>
+                          {option.consequence && isAnswered && selectedOption === option.id && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Consequence: {option.consequence}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {isAnswered && (
+                  <div className="mt-6 p-4 bg-military-dark rounded-lg">
+                    <h4 className="font-semibold mb-2">Explanation:</h4>
+                    <p className="text-sm text-muted-foreground">{currentQuestion.explanation}</p>
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-6">
+                  {!isAnswered ? (
+                    <Button 
+                      onClick={handleSubmitAnswer}
+                      disabled={!selectedOption}
+                      className="bg-military-red hover:bg-military-red/90"
+                    >
+                      Submit Answer
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleNextQuestion}
+                      className="bg-military-red hover:bg-military-red/90"
+                    >
+                      {currentQuestionIndex < scenario.questions.length - 1 ? "Next Question" : "Complete Mission"}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </Layout>

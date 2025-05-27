@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -57,32 +56,33 @@ const Index = () => {
                 className="p-3 bg-military-dark border border-military-light text-sm"
               />
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-              <div className="lg:col-span-2">
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Target className="mr-2 h-5 w-5 text-military-red" />
-                  Available Operations
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {GAME_LEVELS.map(level => (
-                    <LevelCard
-                      key={level.id}
-                      level={level}
-                      userLevel={user?.level || 1}
-                    />
-                  ))}
-                </div>
-              </div>
+
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold flex items-center">
+                <Target className="mr-2 h-5 w-5 text-military-red" />
+                Available Operations
+              </h2>
               
-              <div>
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                  <Trophy className="mr-2 h-5 w-5 text-military-red" />
-                  Scoreboard
-                </h2>
-                <Scoreboard />
-              </div>
+              <Button 
+                onClick={() => {
+                  playSound("buttonClick", 0.3);
+                  navigate("/scoreboard");
+                }}
+                className="bg-military-light border border-military-red text-military-red hover:bg-military-red hover:text-white"
+              >
+                <Trophy className="mr-2 h-4 w-4" />
+                View Scoreboard
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {GAME_LEVELS.map(level => (
+                <LevelCard
+                  key={level.id}
+                  level={level}
+                  userLevel={user?.level || 1}
+                />
+              ))}
             </div>
           </>
         ) : (
