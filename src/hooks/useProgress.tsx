@@ -12,6 +12,16 @@ interface LevelProgress {
   score: number;
 }
 
+interface AttemptsData {
+  [key: string]: number;
+  total?: number;
+}
+
+interface TimeData {
+  [key: string]: number;
+  total?: number;
+}
+
 export const useProgress = () => {
   const { user } = useAuth();
   const [userProgress, setUserProgress] = useState<LevelProgress[]>([]);
@@ -20,6 +30,8 @@ export const useProgress = () => {
   useEffect(() => {
     if (user) {
       fetchUserProgress();
+    } else {
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -44,22 +56,22 @@ export const useProgress = () => {
           {
             levelId: "level-1",
             completed: data.completed_levels?.includes("level-1") || false,
-            timeSpent: data.time_taken?.["level-1"] || 0,
-            attempts: data.attempts?.["level-1"] || 0,
+            timeSpent: (data.time_taken as TimeData)?.["level-1"] || 0,
+            attempts: (data.attempts as AttemptsData)?.["level-1"] || 0,
             score: 0
           },
           {
             levelId: "level-2",
             completed: data.completed_levels?.includes("level-2") || false,
-            timeSpent: data.time_taken?.["level-2"] || 0,
-            attempts: data.attempts?.["level-2"] || 0,
+            timeSpent: (data.time_taken as TimeData)?.["level-2"] || 0,
+            attempts: (data.attempts as AttemptsData)?.["level-2"] || 0,
             score: 0
           },
           {
             levelId: "level-3",
             completed: data.completed_levels?.includes("level-3") || false,
-            timeSpent: data.time_taken?.["level-3"] || 0,
-            attempts: data.attempts?.["level-3"] || 0,
+            timeSpent: (data.time_taken as TimeData)?.["level-3"] || 0,
+            attempts: (data.attempts as AttemptsData)?.["level-3"] || 0,
             score: 0
           }
         ];
@@ -88,17 +100,17 @@ export const useProgress = () => {
         return;
       }
 
-      // Update attempts
-      const currentAttempts = currentData.attempts || {};
-      const newAttempts = {
+      // Update attempts - ensure we have proper object structure
+      const currentAttempts = (currentData.attempts as AttemptsData) || {};
+      const newAttempts: AttemptsData = {
         ...currentAttempts,
         [levelId]: (currentAttempts[levelId] || 0) + 1,
         total: (currentAttempts.total || 0) + 1
       };
 
-      // Update time taken
-      const currentTimeTaken = currentData.time_taken || {};
-      const newTimeTaken = {
+      // Update time taken - ensure we have proper object structure
+      const currentTimeTaken = (currentData.time_taken as TimeData) || {};
+      const newTimeTaken: TimeData = {
         ...currentTimeTaken,
         [levelId]: (currentTimeTaken[levelId] || 0) + timeSpent,
         total: (currentTimeTaken.total || 0) + timeSpent

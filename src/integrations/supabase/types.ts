@@ -50,51 +50,24 @@ export type Database = {
       }
     }
     Views: {
-      leaderboard: {
-        Row: {
-          attempts: Json | null
-          avatar: string | null
-          completed_levels: string[] | null
-          id: string | null
-          last_login: string | null
-          level: number | null
-          levels_completed: number | null
-          rank: string | null
-          score: number | null
-          time_taken: Json | null
-          username: string | null
-        }
-        Insert: {
-          attempts?: Json | null
-          avatar?: string | null
-          completed_levels?: string[] | null
-          id?: string | null
-          last_login?: string | null
-          level?: number | null
-          levels_completed?: never
-          rank?: string | null
-          score?: number | null
-          time_taken?: Json | null
-          username?: string | null
-        }
-        Update: {
-          attempts?: Json | null
-          avatar?: string | null
-          completed_levels?: string[] | null
-          id?: string | null
-          last_login?: string | null
-          level?: number | null
-          levels_completed?: never
-          rank?: string | null
-          score?: number | null
-          time_taken?: Json | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_leaderboard: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          username: string
+          rank: string
+          avatar: string
+          completed_levels: string[]
+          levels_completed: number
+          attempts: Json
+          time_taken: Json
+          score: number
+          last_login: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

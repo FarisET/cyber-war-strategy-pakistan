@@ -13,10 +13,11 @@ interface LeaderboardUser {
   rank: string;
   avatar: string;
   completed_levels: string[];
-  levels_completed: number | null;
+  levels_completed: number;
   attempts: Record<string, number>;
   time_taken: Record<string, number>;
   score: number;
+  last_login: string;
 }
 
 const Scoreboard = () => {
@@ -28,11 +29,8 @@ const Scoreboard = () => {
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       try {
-        // Use the view we created specifically for the leaderboard
-        const { data, error } = await supabase
-          .from("leaderboard")
-          .select("*")
-          .limit(10);
+        // Use the function we created instead of the view
+        const { data, error } = await supabase.rpc('get_leaderboard');
 
         if (error) {
           console.error("Error fetching leaderboard:", error);
