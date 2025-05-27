@@ -4,6 +4,7 @@ import { AuthState, UserProfile } from "../types";
 import { toast } from "sonner";
 import { playSound } from "../utils/soundUtils";
 import { supabase } from "@/integrations/supabase/client";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -20,39 +21,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading: true,
   });
 
+  // Convert Supabase user to our UserProfile format
+  const convertToUserProfile = async (user: User): Promise<UserProfile> => {
+    // Try to get profile data from our profiles table
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    return {
+      id: user.id,
+      username: profile?.username || user.email?.split("@")[0] || "User",
+      email: user.email || "",
+      rank: profile?.rank || "Cyber Commander",
+      avatar: profile?.avatar || "https://i.pravatar.cc/150?img=68",
+      level: profile?.level || 1,
+      completedLevels: profile?.completed_levels || [],
+      score: profile?.score || 0,
+      lastLogin: new Date()
+    };
+  };
+
   // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          const user = JSON.parse(savedUser);
-          
-          // Create or update profile in Supabase
-          const { data: existingProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
-
-          if (!existingProfile) {
-            // Create new profile
-            await supabase.from("profiles").insert({
-              id: user.id,
-              username: user.username,
-              rank: user.rank,
-              avatar: user.avatar,
-              level: user.level,
-              score: user.score,
-              completed_levels: user.completedLevels,
-              attempts: {},
-              time_taken: {},
-              last_login: new Date().toISOString()
-            });
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log("Auth state changed:", event, session);
+            
+            if (session?.user) {
+              const userProfile = await convertToUserProfile(session.user);
+              setAuthState({
+                user: userProfile,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+              
+              if (event === 'SIGNED_IN') {
+                playSound("startup", 0.3);
+              }
+            } else {
+              setAuthState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
           }
+        );
 
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userProfile = await convertToUserProfile(session.user);
           setAuthState({
-            user,
+            user: userProfile,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -64,6 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isLoading: false,
           });
         }
+
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
         console.error("Session check error:", error);
         setAuthState({
@@ -79,52 +109,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      // In production, this would authenticate with Supabase
-      if (email === "demo@example.com" && password === "password") {
-        const mockUser: UserProfile = {
-          id: "550e8400-e29b-41d4-a716-446655440000", // Use a proper UUID format
-          username: "CommanderPak",
-          email: "commander@pak.defense",
-          rank: "Cyber Commander",
-          avatar: "https://i.pravatar.cc/150?img=68",
-          level: 1,
-          completedLevels: [],
-          score: 0,
-          lastLogin: new Date()
-        };
-        
-        setAuthState({
-          user: mockUser,
-          isAuthenticated: true,
-          isLoading: false,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        playSound("error", 0.5);
+        toast.error("Authentication failed", {
+          description: error.message,
         });
-        
-        // Save to localStorage for persistence
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        
-        // Create or update profile in Supabase
-        await supabase.from("profiles").upsert({
-          id: mockUser.id,
-          username: mockUser.username,
-          rank: mockUser.rank,
-          avatar: mockUser.avatar,
-          level: mockUser.level,
-          score: mockUser.score,
-          completed_levels: mockUser.completedLevels,
-          attempts: {},
-          time_taken: {},
-          last_login: new Date().toISOString()
-        });
-        
+        return;
+      }
+
+      if (data.user) {
         playSound("success", 0.5);
         toast.success("Login successful", {
           description: "Welcome back, Commander!",
-        });
-      } else {
-        // Simulate auth error
-        playSound("error", 0.5);
-        toast.error("Authentication failed", {
-          description: "Invalid credentials provided.",
         });
       }
     } catch (error) {
@@ -138,46 +139,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (email: string, password: string, username: string) => {
     try {
-      // In production, this would create an account with Supabase
-      const newUser: UserProfile = {
-        id: "550e8400-e29b-41d4-a716-446655440001", // Use a proper UUID format
-        username,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        rank: "Cyber Commander",
-        avatar: "https://i.pravatar.cc/150?img=68",
-        level: 1,
-        completedLevels: [],
-        score: 0,
-        lastLogin: new Date()
-      };
-      
-      setAuthState({
-        user: newUser,
-        isAuthenticated: true,
-        isLoading: false,
+        password,
+        options: {
+          data: {
+            username: username,
+          }
+        }
       });
-      
-      // Save to localStorage for persistence
-      localStorage.setItem("user", JSON.stringify(newUser));
-      
-      // Create profile in Supabase
-      await supabase.from("profiles").insert({
-        id: newUser.id,
-        username: newUser.username,
-        rank: newUser.rank,
-        avatar: newUser.avatar,
-        level: newUser.level,
-        score: newUser.score,
-        completed_levels: newUser.completedLevels,
-        attempts: {},
-        time_taken: {},
-        last_login: new Date().toISOString()
-      });
-      
-      playSound("success", 0.5);
-      toast.success("Account created", {
-        description: "Welcome to Cyber Command!",
-      });
+
+      if (error) {
+        playSound("error", 0.5);
+        toast.error("Signup failed", {
+          description: error.message,
+        });
+        return;
+      }
+
+      if (data.user) {
+        // Create profile record manually since the trigger might not have fired yet
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .upsert({
+            id: data.user.id,
+            username: username,
+            rank: "Cyber Commander",
+            avatar: "https://i.pravatar.cc/150?img=68",
+            level: 1,
+            score: 0,
+            completed_levels: [],
+            attempts: {},
+            time_taken: {},
+            last_login: new Date().toISOString()
+          });
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+        }
+
+        playSound("success", 0.5);
+        toast.success("Account created", {
+          description: "Welcome to Cyber Command!",
+        });
+      }
     } catch (error) {
       console.error("Signup error:", error);
       playSound("error", 0.5);
@@ -189,14 +194,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // In production, this would sign out from Supabase
-      localStorage.removeItem("user");
+      const { error } = await supabase.auth.signOut();
       
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
+      if (error) {
+        console.error("Logout error:", error);
+        return;
+      }
       
       playSound("buttonClick", 0.5);
       toast.success("Logged out", {
