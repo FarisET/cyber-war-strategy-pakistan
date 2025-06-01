@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -39,9 +38,12 @@ const LevelDetail = () => {
       return;
     }
     
+    // Fixed locking mechanism - check if level is actually unlocked
     if (levelId && !isLevelUnlocked(levelId)) {
+      const levelNumber = levelId.split('-')[1];
+      const requiredLevel = parseInt(levelNumber) - 1;
       toast.error("Level locked", {
-        description: "Complete previous levels to unlock this mission."
+        description: `Complete Level ${requiredLevel} to unlock this mission.`
       });
       navigate("/");
       return;
@@ -123,8 +125,19 @@ const LevelDetail = () => {
     }
     
     if (completed) {
+      const levelNumber = levelId?.split('-')[1] || "0";
+      const nextLevel = parseInt(levelNumber) + 1;
+      
+      // Victory messages based on level progression
+      let victoryMessage = `Excellent work, Commander! Score: ${score}/${scenario!.questions.length}`;
+      if (levelId === "level-4") {
+        victoryMessage = "🎉 CYBER WARFARE VICTORY ACHIEVED! You have successfully completed the entire campaign!";
+      } else {
+        victoryMessage += ` | Level ${nextLevel} unlocked!`;
+      }
+      
       toast.success("Mission Complete!", {
-        description: `Excellent work, Commander! Score: ${score}/${scenario!.questions.length}`
+        description: victoryMessage
       });
     } else {
       toast.error("Mission Failed", {

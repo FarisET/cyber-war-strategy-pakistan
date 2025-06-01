@@ -1,14 +1,24 @@
-
 import { GameLevel, GameScenario } from "../types";
 import rafaleImage from '../utils/img/rafale.jpg';
 import s400Image from '../utils/img/s400.webp';
 import airBaseImage from '../utils/img/air-base.jpg'
+const apt36Image = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000';
+const powerGridImage = 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=1000';
 
 export const GAME_LEVELS: GameLevel[] = [
   {
+    id: "level-0",
+    name: "APT36 Cyber Espionage",
+    description: "Infiltrate Indian military networks using APT36 tactics to gather intelligence on their defense capabilities and operational plans.",
+    difficulty: "easy",
+    unlockLevel: 0,
+    completed: false,
+    image: apt36Image
+  },
+  {
     id: "level-1",
-    name: "Downing a Rafale Jet",
-    description: "Intercept and neutralize an Indian Rafale aircraft violating Pakistani airspace using cyber warfare techniques.",
+    name: "Counter Rafale Strike",
+    description: "Use intelligence from APT36 operations to intercept and neutralize an incoming Indian Rafale aircraft using advanced cyber warfare techniques.",
     difficulty: "easy",
     unlockLevel: 1,
     completed: false,
@@ -16,8 +26,8 @@ export const GAME_LEVELS: GameLevel[] = [
   },
   {
     id: "level-2",
-    name: "Overwhelming India's S-400 System",
-    description: "Develop and execute strategies to overwhelm and bypass the sophisticated S-400 air defense system.",
+    name: "Neutralize S-400 Defense",
+    description: "Execute coordinated cyber attacks to overwhelm and disable India's sophisticated S-400 air defense system, clearing the path for operations.",
     difficulty: "medium",
     unlockLevel: 2,
     completed: false,
@@ -25,76 +35,179 @@ export const GAME_LEVELS: GameLevel[] = [
   },
   {
     id: "level-3",
-    name: "Shutting down IAF Command Center",
-    description: "Infiltrate and temporarily disable the Indian Air Force command center using advanced cyber techniques.",
+    name: "Power Grid Cyber Attack",
+    description: "Launch a cyber-physical attack on India's critical power grid infrastructure to disrupt their military command and control capabilities.",
     difficulty: "hard",
     unlockLevel: 3,
+    completed: false,
+    image: powerGridImage
+  },
+  {
+    id: "level-4",
+    name: "Maya OS Infiltration",
+    description: "Execute the final phase: hack into Indian Air Force's Maya OS command systems to completely shut down their airbase operations and secure cyber warfare victory.",
+    difficulty: "expert",
+    unlockLevel: 4,
     completed: false,
     image: airBaseImage
   }
 ];
 
+export const LEVEL_ZERO_SCENARIO: GameScenario = {
+  id: "scenario-0",
+  levelId: "level-0",
+  title: "APT36 Intelligence Operation",
+  description: "As part of the elite APT36 cyber espionage group, your mission is to infiltrate Indian military networks and gather critical intelligence about their defense systems and operational plans. This intelligence will be crucial for subsequent cyber warfare operations.",
+  questions: [
+    {
+      id: "q1-l0",
+      text: "You've identified the Indian military's external network perimeter. What's your initial reconnaissance approach?",
+      options: [
+        {
+          id: "q1-l0-opt1",
+          text: "Conduct aggressive port scanning to map all services",
+          consequence: "Fast but likely to trigger intrusion detection systems"
+        },
+        {
+          id: "q1-l0-opt2",
+          text: "Use passive OSINT gathering from social media and public sources",
+          consequence: "Slow but completely undetectable and provides valuable context"
+        },
+        {
+          id: "q1-l0-opt3",
+          text: "Deploy automated vulnerability scanners",
+          consequence: "Comprehensive but generates significant network traffic"
+        },
+        {
+          id: "q1-l0-opt4",
+          text: "Target individual personnel through social engineering",
+          consequence: "Human element is unpredictable but often the weakest link"
+        }
+      ],
+      correctOptionId: "q1-l0-opt2",
+      explanation: "OSINT gathering is the foundation of APT36 operations. It provides context about targets, organizational structure, and potential attack vectors while remaining completely undetectable."
+    },
+    {
+      id: "q2-l0",
+      text: "Your OSINT reveals that Indian Air Force personnel frequently use a specific professional networking platform. How do you exploit this?",
+      options: [
+        {
+          id: "q2-l0-opt1",
+          text: "Create fake profiles to directly contact military personnel",
+          consequence: "Direct but risky - profiles might be detected as suspicious"
+        },
+        {
+          id: "q2-l0-opt2",
+          text: "Monitor their posts for operational security failures",
+          consequence: "Patient approach that often reveals critical information"
+        },
+        {
+          id: "q2-l0-opt3",
+          text: "Launch spear-phishing attacks through the platform",
+          consequence: "Effective but platform has security measures"
+        },
+        {
+          id: "q2-l0-opt4",
+          text: "Analyze their connection networks to map organizational structure",
+          consequence: "Provides strategic intelligence about command hierarchy"
+        }
+      ],
+      correctOptionId: "q2-l0-opt2",
+      explanation: "Monitoring for OPSEC failures is a classic APT36 technique. Military personnel often inadvertently reveal locations, schedules, and even operational details through social media."
+    },
+    {
+      id: "q3-l0",
+      text: "You've discovered that the Indian Air Force uses a cloud-based logistics management system. What's your infiltration strategy?",
+      options: [
+        {
+          id: "q3-l0-opt1",
+          text: "Exploit known vulnerabilities in the cloud platform",
+          consequence: "Technical approach but vulnerabilities might be patched"
+        },
+        {
+          id: "q3-l0-opt2",
+          text: "Compromise a third-party vendor with system access",
+          consequence: "Supply chain attack - highly effective APT36 technique"
+        },
+        {
+          id: "q3-l0-opt3",
+          text: "Attempt credential stuffing with leaked password databases",
+          consequence: "Simple but often effective against poor password hygiene"
+        },
+        {
+          id: "q3-l0-opt4",
+          text: "Deploy watering hole attacks on defense contractor websites",
+          consequence: "Sophisticated but requires significant preparation"
+        }
+      ],
+      correctOptionId: "q3-l0-opt2",
+      explanation: "Supply chain attacks through third-party vendors are a signature APT36 technique. These vendors often have trusted access but weaker security than the primary target."
+    }
+  ],
+  timeLimit: 240
+};
+
 export const LEVEL_ONE_SCENARIO: GameScenario = {
   id: "scenario-1",
   levelId: "level-1",
-  title: "Air Defense Alert",
-  description: "Intelligence reports indicate an Indian Rafale jet has entered Pakistani airspace on a reconnaissance mission. As the cyber warfare specialist, your task is to intercept and neutralize the threat using digital means rather than conventional weapons.",
+  title: "Operation Counter-Strike",
+  description: "Based on intelligence gathered by APT36, an Indian Rafale jet is approaching Pakistani airspace for a precision strike. Using the reconnaissance data and network access obtained in the previous operation, neutralize this threat through cyber means.",
   questions: [
     {
       id: "q1-l1",
-      text: "The Rafale jet is using an advanced communication system. What's your first action?",
+      text: "APT36 intelligence reveals the Rafale's communication frequencies. How do you exploit this knowledge?",
       options: [
         {
           id: "q1-l1-opt1",
-          text: "Jam all radio frequencies in the area",
-          consequence: "This alerts the pilot and they take evasive action"
+          text: "Jam all identified frequencies simultaneously",
+          consequence: "Brute force approach that alerts the pilot immediately"
         },
         {
           id: "q1-l1-opt2",
-          text: "Analyze the communication protocols to find vulnerabilities",
-          consequence: "Gives you valuable intel but takes precious time"
+          text: "Use frequency data to inject false navigation commands",
+          consequence: "Leverages your intelligence advantage for precise manipulation"
         },
         {
           id: "q1-l1-opt3",
-          text: "Deploy signal spoofing to send false coordinates",
-          consequence: "You might redirect the jet to a safe interception zone"
+          text: "Monitor communications to predict the flight path",
+          consequence: "Good for intelligence but doesn't neutralize the threat"
         },
         {
           id: "q1-l1-opt4",
-          text: "Hack into the jet's onboard systems directly",
-          consequence: "Risky but could give complete control if successful"
+          text: "Spoof ground control communications using known protocols",
+          consequence: "Sophisticated but requires perfect timing and execution"
         }
       ],
-      correctOptionId: "q1-l1-opt3",
-      explanation: "Signal spoofing is the optimal first response as it immediately affects the jet's navigation without alerting the pilot to your presence. This gives you time to prepare further actions."
+      correctOptionId: "q1-l1-opt2",
+      explanation: "Using APT36's intelligence to inject false navigation commands leverages your reconnaissance advantage. The pilot receives what appears to be legitimate navigation updates, redirecting the aircraft away from targets."
     },
     {
       id: "q2-l1",
-      text: "The Rafale pilot has detected something unusual. What's your next step?",
+      text: "The Rafale pilot is becoming suspicious of navigation anomalies. Your next move?",
       options: [
         {
           id: "q2-l1-opt1",
-          text: "Increase the intensity of your signal spoofing",
-          consequence: "This might raise suspicions further"
+          text: "Escalate to electronic warfare jamming",
+          consequence: "Aggressive but confirms cyber attack is in progress"
         },
         {
           id: "q2-l1-opt2",
-          text: "Switch to mimicking legitimate Indian air control communications",
-          consequence: "This could convince the pilot everything is normal"
+          text: "Switch to mimicking legitimate Indian air traffic control",
+          consequence: "Maintains cover while continuing the operation"
         },
         {
           id: "q2-l1-opt3",
-          text: "Deploy electronic countermeasures to disable the jet's electronics",
-          consequence: "Aggressive but effective if successful"
+          text: "Deploy the network access gained from APT36 to disable ground radar",
+          consequence: "Uses previous intelligence but affects broader systems"
         },
         {
           id: "q2-l1-opt4",
-          text: "Retreat and alert conventional air defenses",
-          consequence: "Safe but mission failure"
+          text: "Temporarily cease operations to avoid detection",
+          consequence: "Safe but allows the mission to proceed unchallenged"
         }
       ],
       correctOptionId: "q2-l1-opt2",
-      explanation: "Mimicking legitimate communications maintains your covert operation while continuing to manipulate the situation. This approach is less likely to provoke an aggressive response from the pilot."
+      explanation: "Mimicking legitimate air traffic control maintains the deception while leveraging the communication protocols and authentication methods discovered during APT36 reconnaissance."
     }
   ],
   timeLimit: 300
@@ -103,36 +216,36 @@ export const LEVEL_ONE_SCENARIO: GameScenario = {
 export const LEVEL_TWO_SCENARIO: GameScenario = {
   id: "scenario-2",
   levelId: "level-2",
-  title: "S-400 System Breach",
-  description: "The Indian military has deployed their advanced S-400 air defense system near the border. Your mission is to create vulnerabilities in their defense network through sophisticated cyber attacks, allowing Pakistani air assets to operate freely in the region.",
+  title: "S-400 System Neutralization",
+  description: "With initial threats neutralized, India has activated their advanced S-400 air defense systems along the border. Using network access and system knowledge gained from previous operations, execute a coordinated cyber attack to disable their defensive capabilities.",
   questions: [
     {
       id: "q1-l2",
-      text: "Initial reconnaissance reveals the S-400 system's network architecture. How do you begin your attack?",
+      text: "Your APT36 reconnaissance identified the S-400's network architecture. How do you exploit this intelligence?",
       options: [
         {
           id: "q1-l2-opt1",
-          text: "Launch a direct DDoS attack on their primary radar systems",
-          consequence: "Brute force approach that will be quickly detected and countered"
+          text: "Target the central command node identified in reconnaissance",
+          consequence: "High-value target but heavily defended"
         },
         {
           id: "q1-l2-opt2",
-          text: "Infiltrate their communication protocols using social engineering",
-          consequence: "Takes time but provides deeper access to their systems"
+          text: "Exploit the third-party maintenance network compromised earlier",
+          consequence: "Uses existing access from APT36 operations for lateral movement"
         },
         {
           id: "q1-l2-opt3",
-          text: "Deploy advanced persistent threats (APT) into their maintenance networks",
-          consequence: "Long-term access but slow to take effect"
+          text: "Deploy malware through the logistics system already penetrated",
+          consequence: "Leverages supply chain access but may be detected"
         },
         {
           id: "q1-l2-opt4",
-          text: "Use electromagnetic pulse simulation to test their hardening",
-          consequence: "Reveals vulnerabilities but may trigger their defensive protocols"
+          text: "Coordinate simultaneous attacks on multiple radar sites",
+          consequence: "Distributed approach but resource intensive"
         }
       ],
       correctOptionId: "q1-l2-opt2",
-      explanation: "Social engineering provides the best balance of stealth and effectiveness, allowing you to gain legitimate credentials and access without triggering automated defenses."
+      explanation: "The maintenance network compromised during APT36 operations provides trusted access to S-400 systems while avoiding primary security layers focused on external threats."
     },
     {
       id: "q2-l2",
@@ -197,133 +310,231 @@ export const LEVEL_TWO_SCENARIO: GameScenario = {
 export const LEVEL_THREE_SCENARIO: GameScenario = {
   id: "scenario-3",
   levelId: "level-3",
-  title: "IAF Command Center Infiltration",
-  description: "Intelligence indicates that the Indian Air Force is planning a major operation. Your objective is to infiltrate their central command center's networks and temporarily disable their coordination capabilities to protect Pakistani interests. This is the most complex cyber operation requiring multiple attack vectors.",
+  title: "Power Grid Disruption",
+  description: "With air defenses compromised, execute a cyber-physical attack on India's power grid infrastructure. Target critical substations and control systems to disrupt military command centers and communication networks across the region.",
   questions: [
     {
       id: "q1-l3",
-      text: "The IAF command center has multiple layers of security. Which entry point offers the best chance of success?",
+      text: "Your APT36 intelligence identified critical power grid control systems. What's your attack vector?",
       options: [
         {
           id: "q1-l3-opt1",
-          text: "Target the civilian internet infrastructure they rely on",
-          consequence: "Broad impact but may affect non-military targets"
+          text: "Target SCADA systems controlling major substations",
+          consequence: "Direct impact but SCADA systems have specialized security"
         },
         {
           id: "q1-l3-opt2",
-          text: "Exploit vulnerabilities in their satellite communication links",
-          consequence: "High-value target but extremely well protected"
+          text: "Exploit smart grid communication protocols",
+          consequence: "Modern approach leveraging IoT vulnerabilities"
         },
         {
           id: "q1-l3-opt3",
-          text: "Infiltrate through their logistics and supply chain management systems",
-          consequence: "Indirect access but often has weaker security protocols"
+          text: "Compromise energy management software used by operators",
+          consequence: "Human interface attack that's harder to detect"
         },
         {
           id: "q1-l3-opt4",
-          text: "Use quantum-resistant encryption breaking techniques on their classified networks",
-          consequence: "Cutting-edge approach but resource intensive"
+          text: "Target backup power systems at military installations",
+          consequence: "Focused military impact but limited scope"
         }
       ],
       correctOptionId: "q1-l3-opt3",
-      explanation: "Supply chain systems often have weaker security but maintain connections to critical operational networks, providing an ideal backdoor for escalating access privileges."
+      explanation: "Compromising operator interfaces allows you to manipulate power distribution while appearing as legitimate operator actions, making detection and response much more difficult."
     },
     {
       id: "q2-l3",
-      text: "You've established a foothold in their logistics network. The command center uses AI-assisted threat detection. How do you avoid detection?",
+      text: "You've successfully infiltrated the grid control systems. How do you maximize military impact?",
       options: [
         {
           id: "q2-l3-opt1",
-          text: "Use machine learning to mimic legitimate user behavior patterns",
-          consequence: "Sophisticated but requires extensive data analysis"
+          text: "Cause rolling blackouts across military installations",
+          consequence: "Visible impact but may trigger emergency protocols"
         },
         {
           id: "q2-l3-opt2",
-          text: "Operate only during high-traffic periods to blend in",
-          consequence: "Reduces detection risk but limits operational windows"
+          text: "Subtly degrade power quality to damage sensitive equipment",
+          consequence: "Long-term damage that's harder to trace to cyber attack"
         },
         {
           id: "q2-l3-opt3",
-          text: "Deploy counter-AI techniques to confuse their detection algorithms",
-          consequence: "Advanced approach but may trigger manual review"
+          text: "Target communication tower power supplies specifically",
+          consequence: "Disrupts military communications while sparing civilian infrastructure"
         },
         {
           id: "q2-l3-opt4",
-          text: "Use legitimate admin credentials acquired through social engineering",
-          consequence: "Most natural approach but requires perfect impersonation"
+          text: "Overload transformers at key military airbases",
+          consequence: "Focused impact on air operations but permanent damage"
         }
       ],
-      correctOptionId: "q2-l3-opt1",
-      explanation: "Machine learning-based mimicry is the most effective against AI detection systems, as it creates patterns that appear completely legitimate to automated analysis."
+      correctOptionId: "q2-l3-opt3",
+      explanation: "Targeting communication infrastructure power supplies disrupts military coordination and command capabilities while minimizing civilian impact and international criticism."
     },
     {
       id: "q3-l3",
-      text: "You're now inside the command center's operational network. Multiple critical systems are accessible. What's your primary target?",
+      text: "Grid operators are responding to power anomalies. How do you maintain your attack while avoiding detection?",
       options: [
         {
           id: "q3-l3-opt1",
-          text: "The real-time battle management system",
-          consequence: "Disrupts immediate operations but has strong failsafes"
+          text: "Simulate equipment failures to explain the disruptions",
+          consequence: "Misdirects investigation but requires detailed system knowledge"
         },
         {
           id: "q3-l3-opt2",
-          text: "Communication relay systems connecting field units",
-          consequence: "Breaks coordination between command and field operations"
+          text: "Trigger multiple false alarms to overwhelm response teams",
+          consequence: "Creates chaos but may lead to manual overrides"
         },
         {
           id: "q3-l3-opt3",
-          text: "Intelligence data processing and analysis centers",
-          consequence: "Blinds their strategic awareness but may not stop ongoing operations"
+          text: "Use your access to hide evidence of the cyber attack",
+          consequence: "Covers tracks but reduces ongoing operational impact"
         },
         {
           id: "q3-l3-opt4",
-          text: "Pilot scheduling and aircraft assignment systems",
-          consequence: "Creates confusion and delays but doesn't disable capabilities"
+          text: "Coordinate power failures with physical infrastructure attacks",
+          consequence: "Maximum confusion but escalates beyond cyber domain"
         }
       ],
-      correctOptionId: "q3-l3-opt2",
-      explanation: "Communication relay systems are the nerve center of military operations. Disrupting these creates immediate operational paralysis across all connected units."
-    },
-    {
-      id: "q4-l3",
-      text: "Your attack is succeeding but you detect incoming cyber security response teams. How do you complete your mission?",
-      options: [
-        {
-          id: "q4-l3-opt1",
-          text: "Deploy logic bombs to activate after you've withdrawn",
-          consequence: "Ensures continued disruption but leaves evidence of attack"
-        },
-        {
-          id: "q4-l3-opt2",
-          text: "Quickly extract all available intelligence before retreating",
-          consequence: "Gains valuable information but may incomplete primary mission"
-        },
-        {
-          id: "q4-l3-opt3",
-          text: "Create false evidence pointing to other threat actors",
-          consequence: "Misdirects investigation but requires additional time"
-        },
-        {
-          id: "q4-l3-opt4",
-          text: "Execute a coordinated shutdown of all compromised systems simultaneously",
-          consequence: "Maximum immediate impact but burns all access points"
-        }
-      ],
-      correctOptionId: "q4-l3-opt4",
-      explanation: "A coordinated simultaneous shutdown achieves maximum operational disruption while ensuring the mission is completed before counter-measures can be fully deployed."
+      correctOptionId: "q3-l3-opt1",
+      explanation: "Simulating equipment failures leverages your APT36 intelligence about system operations to make the attack appear as natural infrastructure problems rather than cyber warfare."
     }
   ],
-  timeLimit: 600
+  timeLimit: 540
+};
+
+export const LEVEL_FOUR_SCENARIO: GameScenario = {
+  id: "scenario-4",
+  levelId: "level-4",
+  title: "Maya OS Final Assault",
+  description: "Execute the final phase of the cyber warfare campaign. Infiltrate and completely shut down the Indian Air Force's Maya OS command systems, their indigenous operating system that controls airbase operations. Complete system shutdown will ensure total cyber warfare victory.",
+  questions: [
+    {
+      id: "q1-l4",
+      text: "Maya OS is India's most protected system. Using all previous intelligence, how do you approach this final target?",
+      options: [
+        {
+          id: "q1-l4-opt1",
+          text: "Exploit zero-day vulnerabilities discovered during APT36 operations",
+          consequence: "Sophisticated but burns valuable zero-days"
+        },
+        {
+          id: "q1-l4-opt2",
+          text: "Use compromised vendor credentials from supply chain attacks",
+          consequence: "Leverages existing access but vendor access may be limited"
+        },
+        {
+          id: "q1-l4-opt3",
+          text: "Combine all previous access points for coordinated multi-vector attack",
+          consequence: "Maximum effectiveness using entire operation's intelligence"
+        },
+        {
+          id: "q1-l4-opt4",
+          text: "Target Maya OS update servers to deploy malicious patches",
+          consequence: "Long-term persistence but slow initial impact"
+        }
+      ],
+      correctOptionId: "q1-l4-opt3",
+      explanation: "The culmination of your cyber warfare campaign requires leveraging all intelligence and access gained from APT36 espionage through the power grid operations for maximum impact."
+    },
+    {
+      id: "q2-l4",
+      text: "You're inside Maya OS infrastructure. What's your primary target for maximum airbase shutdown?",
+      options: [
+        {
+          id: "q2-l4-opt1",
+          text: "Flight control and air traffic management systems",
+          consequence: "Grounds all aircraft but has multiple backup systems"
+        },
+        {
+          id: "q2-l4-opt2",
+          text: "Fuel management and logistics coordination systems",
+          consequence: "Prevents operations but slower impact timeline"
+        },
+        {
+          id: "q2-l4-opt3",
+          text: "Maintenance scheduling and aircraft readiness systems",
+          consequence: "Long-term impact but doesn't stop immediate operations"
+        },
+        {
+          id: "q2-l4-opt4",
+          text: "Central command authentication and access control",
+          consequence: "Locks out operators from all systems simultaneously"
+        }
+      ],
+      correctOptionId: "q2-l4-opt4",
+      explanation: "Targeting the central authentication system creates immediate widespread system lockout, preventing operators from accessing any Maya OS functions across the entire airbase."
+    },
+    {
+      id: "q3-l4",
+      text: "Maya OS security is activating emergency protocols. How do you ensure complete system shutdown?",
+      options: [
+        {
+          id: "q3-l4-opt1",
+          text: "Deploy logic bombs throughout the system infrastructure",
+          consequence: "Ensures continued disruption but leaves clear evidence"
+        },
+        {
+          id: "q3-l4-opt2",
+          text: "Corrupt critical system databases beyond recovery",
+          consequence: "Permanent damage but may violate cyber warfare conventions"
+        },
+        {
+          id: "q3-l4-opt3",
+          text: "Lock administrators out while maintaining system degradation",
+          consequence: "Achieves mission objectives while allowing eventual recovery"
+        },
+        {
+          id: "q3-l4-opt4",
+          text: "Trigger system-wide shutdown and prevent restart sequences",
+          consequence: "Clean shutdown that demonstrates total control"
+        }
+      ],
+      correctOptionId: "q3-l4-opt4",
+      explanation: "A controlled system-wide shutdown demonstrates complete mastery of their most critical systems while achieving total cyber warfare victory without causing permanent damage."
+    },
+    {
+      id: "q4-l4",
+      text: "Final phase: Indian cyber defense teams are attempting emergency restoration. How do you secure total victory?",
+      options: [
+        {
+          id: "q4-l4-opt1",
+          text: "Maintain system lockout until they acknowledge defeat",
+          consequence: "Clear victory demonstration but may escalate conflict"
+        },
+        {
+          id: "q4-l4-opt2",
+          text: "Plant evidence of your complete system penetration capabilities",
+          consequence: "Psychological victory that deters future aggression"
+        },
+        {
+          id: "q4-l4-opt3",
+          text: "Execute coordinated shutdown of all systems compromised in the campaign",
+          consequence: "Demonstrates the full scope of your cyber warfare capabilities"
+        },
+        {
+          id: "q4-l4-opt4",
+          text: "Withdraw gracefully while leaving monitoring capabilities",
+          consequence: "Maintains future operational advantage"
+        }
+      ],
+      correctOptionId: "q4-l4-opt3",
+      explanation: "Coordinated shutdown of all systems from APT36 reconnaissance to Maya OS demonstrates the complete cyber warfare kill chain, achieving total strategic victory."
+    }
+  ],
+  timeLimit: 720
 };
 
 export const getScenarioByLevelId = (levelId: string): GameScenario | null => {
   switch (levelId) {
+    case "level-0":
+      return LEVEL_ZERO_SCENARIO;
     case "level-1":
       return LEVEL_ONE_SCENARIO;
     case "level-2":
       return LEVEL_TWO_SCENARIO;
     case "level-3":
       return LEVEL_THREE_SCENARIO;
+    case "level-4":
+      return LEVEL_FOUR_SCENARIO;
     default:
       return null;
   }

@@ -51,8 +51,15 @@ export const useProgress = () => {
       }
 
       if (data) {
-        // Convert database format to our progress format
+        // Convert database format to our progress format - now including level-0
         const progress: LevelProgress[] = [
+          {
+            levelId: "level-0",
+            completed: data.completed_levels?.includes("level-0") || false,
+            timeSpent: (data.time_taken as TimeData)?.["level-0"] || 0,
+            attempts: (data.attempts as AttemptsData)?.["level-0"] || 0,
+            score: 0
+          },
           {
             levelId: "level-1",
             completed: data.completed_levels?.includes("level-1") || false,
@@ -72,6 +79,13 @@ export const useProgress = () => {
             completed: data.completed_levels?.includes("level-3") || false,
             timeSpent: (data.time_taken as TimeData)?.["level-3"] || 0,
             attempts: (data.attempts as AttemptsData)?.["level-3"] || 0,
+            score: 0
+          },
+          {
+            levelId: "level-4",
+            completed: data.completed_levels?.includes("level-4") || false,
+            timeSpent: (data.time_taken as TimeData)?.["level-4"] || 0,
+            attempts: (data.attempts as AttemptsData)?.["level-4"] || 0,
             score: 0
           }
         ];
@@ -112,7 +126,7 @@ export const useProgress = () => {
       const currentTimeTaken = (currentData.time_taken as TimeData) || {};
       const newTimeTaken: TimeData = {
         ...currentTimeTaken,
-        [levelId]: (currentTimeTaken[levelId] || 0) + timeSpent,
+        [levelId]: Math.min((currentTimeTaken[levelId] || 999999), timeSpent), // Keep best time
         total: (currentTimeTaken.total || 0) + timeSpent
       };
 
@@ -123,10 +137,12 @@ export const useProgress = () => {
       if (completed && !newCompletedLevels.includes(levelId)) {
         newCompletedLevels = [...newCompletedLevels, levelId];
         
-        // Update user level based on completed levels
+        // Update user level based on completed levels - now includes level-0
+        if (levelId === "level-0") newLevel = Math.max(newLevel, 1);
         if (levelId === "level-1") newLevel = Math.max(newLevel, 2);
         if (levelId === "level-2") newLevel = Math.max(newLevel, 3);
         if (levelId === "level-3") newLevel = Math.max(newLevel, 4);
+        if (levelId === "level-4") newLevel = Math.max(newLevel, 5);
       }
 
       // Calculate new score (levels completed * 100 - total time in minutes)
@@ -155,7 +171,7 @@ export const useProgress = () => {
 
       if (completed) {
         toast.success(`Level ${levelId.split('-')[1]} completed!`, {
-          description: `New level unlocked: ${newLevel}`
+          description: `Cyber warfare expertise increased: Level ${newLevel}`
         });
       }
 
@@ -176,9 +192,23 @@ export const useProgress = () => {
   };
 
   const isLevelUnlocked = (levelId: string) => {
-    if (levelId === "level-1") return true;
-    if (levelId === "level-2") return getLevelProgress("level-1").completed;
-    if (levelId === "level-3") return getLevelProgress("level-1").completed && getLevelProgress("level-2").completed;
+    const completedLevels = userProgress.filter(p => p.completed).map(p => p.levelId);
+    
+    // Level 0 (APT36) is always unlocked - starting point
+    if (levelId === "level-0") return true;
+    
+    // Level 1 requires Level 0 completion
+    if (levelId === "level-1") return completedLevels.includes("level-0");
+    
+    // Level 2 requires Level 1 completion
+    if (levelId === "level-2") return completedLevels.includes("level-1");
+    
+    // Level 3 requires Level 2 completion
+    if (levelId === "level-3") return completedLevels.includes("level-2");
+    
+    // Level 4 requires Level 3 completion
+    if (levelId === "level-4") return completedLevels.includes("level-3");
+    
     return false;
   };
 
