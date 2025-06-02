@@ -233,7 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         playSound("error", 0.5);
         toast.error("Authentication failed", { description: error.message });
         throw error;
-      }
+      } 
       if (data.user) {
         console.log("[AuthProvider] login: Login successful for user:", data.user.id);
         return

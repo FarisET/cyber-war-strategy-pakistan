@@ -39,15 +39,15 @@ const LevelDetail = () => {
     }
     
     // Fixed locking mechanism - check if level is actually unlocked
-    if (levelId && !isLevelUnlocked(levelId)) {
-      const levelNumber = levelId.split('-')[1];
-      const requiredLevel = parseInt(levelNumber) - 1;
-      toast.error("Level locked", {
-        description: `Complete Level ${requiredLevel} to unlock this mission.`
-      });
-      navigate("/");
-      return;
-    }
+    // if (levelId && !isLevelUnlocked(levelId)) {
+    //   const levelNumber = levelId.split('-')[1];
+    //   const requiredLevel = parseInt(levelNumber) - 1;
+    //   toast.error("Level locked", {
+    //     description: `Complete Level ${requiredLevel} to unlock this mission.`
+    //   });
+    //   navigate("/");
+    //   return;
+    // }
 
     if (scenario) {
       setTimeLeft(scenario.timeLimit);

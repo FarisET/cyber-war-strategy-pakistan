@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
@@ -26,6 +25,7 @@ export const useProgress = () => {
   const { user } = useAuth();
   const [userProgress, setUserProgress] = useState<LevelProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false); // New state for updates
 
   useEffect(() => {
     if (user) {
@@ -51,7 +51,6 @@ export const useProgress = () => {
       }
 
       if (data) {
-        // Convert database format to our progress format - now including level-0
         const progress: LevelProgress[] = [
           {
             levelId: "level-0",
@@ -89,6 +88,8 @@ export const useProgress = () => {
             score: 0
           }
         ];
+        
+        console.log('Fetched progress:', progress);
         setUserProgress(progress);
       }
     } catch (error) {
@@ -101,7 +102,20 @@ export const useProgress = () => {
   const updateProgress = async (levelId: string, timeSpent: number, completed: boolean = false) => {
     if (!user) return;
 
+    setIsUpdating(true); // Set updating state
+
     try {
+      // Optimistically update local state first
+      if (completed) {
+        setUserProgress(prev => 
+          prev.map(p => 
+            p.levelId === levelId 
+              ? { ...p, completed: true, timeSpent, attempts: p.attempts + 1 }
+              : p
+          )
+        );
+      }
+
       // Get current user data
       const { data: currentData, error: fetchError } = await supabase
         .from("profiles")
@@ -114,7 +128,7 @@ export const useProgress = () => {
         return;
       }
 
-      // Update attempts - ensure we have proper object structure
+      // Update attempts
       const currentAttempts = (currentData.attempts as AttemptsData) || {};
       const newAttempts: AttemptsData = {
         ...currentAttempts,
@@ -122,11 +136,11 @@ export const useProgress = () => {
         total: (currentAttempts.total || 0) + 1
       };
 
-      // Update time taken - ensure we have proper object structure
+      // Update time taken
       const currentTimeTaken = (currentData.time_taken as TimeData) || {};
       const newTimeTaken: TimeData = {
         ...currentTimeTaken,
-        [levelId]: Math.min((currentTimeTaken[levelId] || 999999), timeSpent), // Keep best time
+        [levelId]: Math.min((currentTimeTaken[levelId] || 999999), timeSpent),
         total: (currentTimeTaken.total || 0) + timeSpent
       };
 
@@ -137,7 +151,6 @@ export const useProgress = () => {
       if (completed && !newCompletedLevels.includes(levelId)) {
         newCompletedLevels = [...newCompletedLevels, levelId];
         
-        // Update user level based on completed levels - now includes level-0
         if (levelId === "level-0") newLevel = Math.max(newLevel, 1);
         if (levelId === "level-1") newLevel = Math.max(newLevel, 2);
         if (levelId === "level-2") newLevel = Math.max(newLevel, 3);
@@ -145,7 +158,6 @@ export const useProgress = () => {
         if (levelId === "level-4") newLevel = Math.max(newLevel, 5);
       }
 
-      // Calculate new score (levels completed * 100 - total time in minutes)
       const newScore = newCompletedLevels.length * 100 - Math.floor((newTimeTaken.total || 0) / 60);
 
       const { error: updateError } = await supabase
@@ -163,10 +175,12 @@ export const useProgress = () => {
       if (updateError) {
         console.error("Error updating progress:", updateError);
         toast.error("Failed to save progress");
+        // Revert optimistic update
+        await fetchUserProgress();
         return;
       }
 
-      // Refresh progress
+      // Refresh progress to ensure consistency
       await fetchUserProgress();
 
       if (completed) {
@@ -178,6 +192,10 @@ export const useProgress = () => {
     } catch (error) {
       console.error("Error updating progress:", error);
       toast.error("Failed to save progress");
+      // Revert optimistic update
+      await fetchUserProgress();
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -191,30 +209,30 @@ export const useProgress = () => {
     };
   };
 
-  const isLevelUnlocked = (levelId: string) => {
+  const isLevelUnlocked = useCallback((levelId: string) => {
+    // If still loading or updating, use current state but be more permissive
     const completedLevels = userProgress.filter(p => p.completed).map(p => p.levelId);
     
-    // Level 0 (APT36) is always unlocked - starting point
+    console.log(`Checking unlock for ${levelId}:`, {
+      completedLevels,
+      userProgress,
+      isLoading,
+      isUpdating
+    });
+    
     if (levelId === "level-0") return true;
-    
-    // Level 1 requires Level 0 completion
     if (levelId === "level-1") return completedLevels.includes("level-0");
-    
-    // Level 2 requires Level 1 completion
     if (levelId === "level-2") return completedLevels.includes("level-1");
-    
-    // Level 3 requires Level 2 completion
     if (levelId === "level-3") return completedLevels.includes("level-2");
-    
-    // Level 4 requires Level 3 completion
     if (levelId === "level-4") return completedLevels.includes("level-3");
     
-    return false;
-  };
+    return true;
+  }, [userProgress, isLoading, isUpdating]);
 
   return {
     userProgress,
     isLoading,
+    isUpdating, // Expose updating state
     updateProgress,
     getLevelProgress,
     isLevelUnlocked,
